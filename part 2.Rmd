@@ -155,10 +155,7 @@ aa_df <- rbind(ecoli_aa_df, bifido_aa_df)
 barplot(as.numeric(bifido_aa_freq),xlab="nucleotides",ylab="frequency", main="Bifido CDS composition")
 barplot(as.numeric(ecoli_aa_freq),xlab="nucleotides",ylab="frequency", main="E coli CDS composition")
 ```
-
-The comparison shows a distinct variation of the GC content between the two organisms. The AT/GC ratio of Ecoli is relatively balanced(Blattner et al., 1997). Conversely, the Bifidobacterium species have a high GC bias, usually greater than 60, which has been observed in earlier genomic studies (Milani et al., 2014). E. coli is protein-wise a heterogenous amino acid distribution, with Bifidobacterium frequently exhibiting greater proportions of glycine and alanine.
-
-
+#The comparison shows a distinct variation of the GC content between the two organisms. The AT/GC ratio of Ecoli is relatively balanced(Blattner et al., 1997). Conversely, the Bifidobacterium species have a high GC bias, usually greater than 60, which has been observed in earlier genomic studies (Milani et al., 2014). E. coli is protein-wise a heterogenous amino acid distribution, with Bifidobacterium frequently exhibiting greater proportions of glycine and alanine.
 
 ###5 codons 
 ```{r}
@@ -189,7 +186,7 @@ calc_rscu <- function(codon_usage_vector) {
 barplot(ecoli_codon_sum,xlab="codon",ylab="RSCU", main="Ecoli Relative Synonymous Codon Usage RSCU")
 barplot(bifido_codon_sum,xlab="codon",ylab="RSCU", main="Bifido Relative Synonymous Codon Usage RSCU")
 ```
-Analysis of codon usage bias showed that there were evident differences between Bifidobacterium and Escherichia coli. E. coli has a moderate codon usage bias, which correlates with its balanced genomic GC content(Sharp & Li, 1987).Bifidobacterium has strong GC bias, characterized by the trend to use GC-ending codons, which corresponds to the high level of the genomic GC content (Milani et al., 2014).
+#Analysis of codon usage bias showed that there were evident differences between Bifidobacterium and Escherichia coli. E. coli has a moderate codon usage bias, which correlates with its balanced genomic GC content(Sharp & Li, 1987).Bifidobacterium has strong GC bias, characterized by the trend to use GC-ending codons, which corresponds to the high level of the genomic GC content (Milani et al., 2014).
 
 
 ###6 protein sequence k-mers
@@ -213,7 +210,6 @@ count_kmers <- function(sequence, k) {
 ```{r}
 ks <- 3:5
 results <- list()
-
 for (k in ks) {
   bif_k <- count_kmers(bifido_aa, k)
   ecoli_k <- count_kmers(ecoli_aa, k)
@@ -231,11 +227,9 @@ for (k in ks) {
 ```
 ```{r}
 k3_df <- results$k3
-
 top_over <- k3_df %>%
   arrange(desc(log2_ratio)) %>%
   head(10)
-
 top_under <- k3_df %>%
   arrange(log2_ratio) %>%
   head(10)
@@ -254,9 +248,7 @@ barplot(height = top_kmers$log2_ratio,
         main = "Top Over- and Under-represented 3-mers in Bifidobacterium vs E. coli")
 ```
 
-K-mer analysis indicates that there are specific short amino acid motifs (3-5 bases) that are grossly over- or under-represented in Bifidobacterium relative to E. coli.
-
-The over-represented motifs like GPG or PAA can be linked to structural plasticity in proteins because the Bifidobacterium enzymes tend to be active in the anaerobic gut where folding and stability are affected by the pH and redox conditions (Turroni et al., 2010).
+#K-mer analysis indicates that there are specific short amino acid motifs (3-5 bases) that are grossly over- or under-represented in Bifidobacterium relative to E. coli. The over-represented motifs like GPG or PAA can be linked to structural plasticity in proteins because the Bifidobacterium enzymes tend to be active in the anaerobic gut where folding and stability are affected by the pH and redox conditions (Turroni et al., 2010).
 
 
 #refrance 
