@@ -1,0 +1,145 @@
+---
+title: "part 1"
+author: "KRISH KALATHIYA"
+date: "2025-10-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+# Part 1
+
+### Downloading the assignment file 
+```{r}
+
+download.file("https://github.com/ghazkha/Assessment4/raw/main/gene_expression.tsv",
+              destfile = "gene_expression.tsv", quiet = TRUE)
+
+download.file("https://github.com/ghazkha/Assessment4/raw/main/growth_data.csv",
+              destfile = "growth_data.csv", quiet = TRUE)
+
+list.files()
+
+```
+#download.file-Downloads a file from the internet to your local machine.
+
+###1 Reading the file, making the gene  and the row names.
+```{r}
+gene_data <- read.table("gene_expression.tsv",
+                        header = TRUE,
+                        row.names = 1,
+                        sep = "\t")
+head(gene_data) 
+
+
+```
+#to Reads tabular data i used read.table() function and with the header Indicated the first row contains column names
+
+###2 Making a new column which is the mean of the other columns. 
+```{r}
+num_cols <- sapply(gene_data, is.numeric)
+gene_data$mean_expression <- rowMeans(gene_data[, num_cols, drop = FALSE])
+head(gene_data)
+
+```
+#Checking each column in gene data to see if it is numeric by using supply and used rowMeans() to Computes the mean of each row. 
+
+###3 10 genes with the highest mean expression
+```{r}
+sorted_genes <- gene_data[order(-gene_data$mean_expression), ]
+top_10_genes <- head(sorted_genes, 10)
+top_10_genes
+
+```
+#to Selects the first 10 rows from the sorted data frame the fuction head(sorted_genes, 10) is used 
+
+###4 Counting the genes with mean < 10
+```{r}
+sum(gene_data$mean_expression < 10)
+
+```
+#gene_data$mean_expression is used to Refers to the column with mean expression of each gene across all samples.gene_data$mean_expression < 10 is used to Creates a logical vector for each gene.
+
+
+###5 Histogram plot
+```{r}
+hist(gene_data$mean_expression,
+     xlab = "Mean Expression",
+     ylab = "Frequency",
+     main = "Distribution of Mean Gene Expression",
+     breaks = 30)
+```
+#to Creates a histogram hist() is used. xlab is for	the x-axis,ylab to	Label the y-axis,main to give the	Title of the plot
+
+###6 Importing the csv file into an R 
+```{r}
+growth_data <- read.csv("growth_data.csv")
+colnames(growth_data)
+
+str(growth_data)
+
+```
+#to importe and to read the file read.csv is used and to creat the dat frame growth_data is used
+
+###7 Calculate the mean and standard deviation 
+```{r}
+mean_start <- tapply(growth_data$Circumf_2005_cm, growth_data$Site, mean)
+sd_start   <- tapply(growth_data$Circumf_2005_cm, growth_data$Site, sd)
+mean_end   <- tapply(growth_data$Circumf_2020_cm, growth_data$Site, mean)
+sd_end     <- tapply(growth_data$Circumf_2020_cm, growth_data$Site, sd)
+
+data.frame(
+  Site = names(mean_start),
+  Mean_2005 = as.numeric(mean_start),
+  SD_2005   = as.numeric(sd_start),
+  Mean_2020 = as.numeric(mean_end),
+  SD_2020   = as.numeric(sd_end),
+  row.names = NULL
+)
+
+```
+#tapply() to Applies a function to vector, growth_data$Site to factor or grouping variable and for the daviation sd_start → standard,for mean mean_end and for the end daviation sd_end is used.
+
+###8 Boxplot   
+```{r}
+boxplot(
+  growth_data$Circumf_2005_cm[growth_data$Site == "northeast"],
+  growth_data$Circumf_2020_cm[growth_data$Site == "northeast"],
+  growth_data$Circumf_2005_cm[growth_data$Site == "southwest"],
+  growth_data$Circumf_2020_cm[growth_data$Site == "southwest"],
+  names = c("Northeast 2005", "Northeast 2020", "Southwest 2005", "Southwest 2020"),
+  ylab = "Tree Circumference (cm)",
+  main = "Tree Growth (Start vs End of Study)"
+)  
+
+```
+#rowth_data$Circumf_2005_cm[growth_data$Site == "northeast"] is used to Subsets the column only for rows where the site is "northeast" and boxplot() displays distributions side by side for comparison.
+
+### Q9: Calculate the mean growth over the last 10 years 
+```{r}
+growth_data$growth_10yr <- growth_data$Circumf_2020_cm - growth_data$Circumf_2010_cm
+northeast_growth_mean <- mean(growth_data$growth_10yr[growth_data$Site == "northeast"], na.rm = TRUE)
+southwest_growth_mean <- mean(growth_data$growth_10yr[growth_data$Site == "southwest"], na.rm = TRUE)
+c(Northeast_mean_10yr = northeast_growth_mean,
+  Southwest_mean_10yr = southwest_growth_mean)
+
+```
+#for the calculation mean(..., na.rm = TRUE) is used to Calculates the mean growth of these trees.(Circumf_2020 - Circumf_2010) Calculate the 10-year growth for each tree.
+
+###10  t.test to estimate the p-value
+```{r}
+df <- na.omit(growth_data[, c("Site", "growth_10yr")])
+
+t_res <- t.test(growth_10yr ~ Site, data = df)  
+t_res
+```
+#to estimate t.test the t.test(growth_10yr ~ Site, data = df) is used to Performs a two-sample t-test comparing the means of growth_10yr between two groups defined by na.omit() Removes any rows containing missing values. and the tvalue measure of difference between group means relative to variation and pvalue gives probability of observing a difference.
+
+
+
+
+
+
+
+
+
+
