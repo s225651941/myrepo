@@ -1,0 +1,319 @@
+---
+title: "Part2: Examining biological sequence diversity"
+author: "KRISH KALATHIYA"
+date: "2025-10-05"
+output: html_document
+---
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r loading pakeges}
+suppressPackageStartupMessages({
+  library("seqinr") # is a package designed to process and analyse sequence data.
+  library("R.utils") # general utilities like zip and unzip
+})
+```
+
+## 1 Download the whole set of coding DNA sequences for E. coli and your organism of interest
+
+We will be downloading Bifidobacteriacease genomic sequence data from Ensembl. Ensembl is one of the biggest databases of genomic data. There are many E. coli strains available in Ensembl, but we will focus today on “Bifidobacteriaceae bacterium WP012 (GCA_003585625)”. 
+
+```{r downloading genome}
+library("R.utils")
+
+URL="https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-62/fasta/bacteria_63_collection/bifidobacteriaceae_bacterium_wp012_gca_003585625/cds/Bifidobacteriaceae_bacterium_wp012_gca_003585625.ASM358562v1.cds.all.fa.gz"
+download.file(URL,destfile="bifido_cds.fa.gz")
+gunzip("bifido_cds.fa.gz")
+list.files()
+```
+## Loading E. coli sequence data
+We will be downloading E. coli genomic sequence data from Ensembl. Ensembl is one of the biggest databases of genomic data. There are many E. coli strains available in Ensembl, but we will focus today on “Escherichia coli str. K-12 substr. MG1655 str. K12 (GCA_000005845)”. 
+Load the seqinr library: This library provides tools for biological sequence retrieval and analysis.
+```{r}
+library("R.utils")
+
+URL="http://ftp.ensemblgenomes.org/pub/bacteria/release-53/fasta/bacteria_0_collection/escherichia_coli_str_k_12_substr_mg1655_gca_000005845/cds/Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.cds.all.fa.gz"
+download.file(URL,destfile="ecoli_cds.fa.gz")
+gunzip("ecoli_cds.fa.gz")
+list.files()
+```
+#library(seqinr) Loads the package into the R 
+Load the seqinr library: This library provides tools for biological sequence retrieval and analysis.
+```{r}
+library("seqinr")
+```
+#sequences
+structured summary of the first few sequences, giving an overview of the data's structure and content.
+
+```{r}
+ecoli_cds <- seqinr::read.fasta("ecoli_cds.fa")
+str(head(ecoli_cds))
+length(ecoli_cds)
+n_ecoli <- length(ecoli_cds)
+bifido_cds <- seqinr::read.fasta("bifido_cds.fa")
+str(head(bifido_cds))
+length(bifido_cds)
+n_bifido <- length(bifido_cds)
+```
+```{r}
+cds_table <- data.frame(
+  Organism = c("Escherichia coli", "Bifidobacterium sp."),
+  Number_of_CDS = c(n_ecoli, n_bifido)
+)
+cds_table
+```
+The number of coding sequences (CDS) in E. coli is typically around 4,000–5,000, while Bifidobacterium species often have fewer genes, usually between 1,500–2,500 depending on the strain. This reflects differences in genome size and metabolic complexity
+
+###2 Total coding DNA
+```{r}
+ecoli_lengths <- sapply(ecoli_cds, length)
+bifido_lengths <- sapply(bifido_cds, length)
+```
+```{r}
+total_ecoli_codingDNA <- sum(ecoli_lengths)
+total_bifido_codingDNA <- sum(bifido_lengths)
+```
+```{r}
+cds_summary <- data.frame(
+  Organism = c("Escherichia coli", "Bifidobacterium sp."),
+  Number_of_CDS = c(n_ecoli, n_bifido),
+  Total_Coding_DNA_bp = c(total_ecoli_codingDNA, total_bifido_codingDNA),
+  Mean_CDS_Length_bp = c(mean(ecoli_lengths), mean(bifido_lengths))
+)
+```
+```{r}
+knitr::kable(cds_summary, caption = "Comparison of Coding DNA (CDS) Between E. coli and Bifidobacterium")
+```
+###knitr which is used in R Markdown for report generation
+there are large differences in the total coding DNA between Escherichia coli and Bifidobacterium species. E. coli has about 4.3 million base pairs (bp) of coding DNA in its relatively larger and more diverse genome, in about 4,000-4,500 coding sequences (CDS) (Blattner et al., 1997). Bifidobacterium genomes are generally smaller, comprising of approximately 2,000-2,500 CDS and an overall coding length of approximately 2 million bp (Turroni et al., 2010).
+
+###3 length of all coding sequences
+```{r}
+ecoli_len <- as.numeric(summary(ecoli_cds)[,1])
+
+sum(ecoli_len)
+```
+```{r}
+bifido_len <- as.numeric(summary(bifido_cds)[,1])
+
+sum(bifido_len)
+```
+```{r}
+mean_ecoli <- mean(ecoli_len)
+median_ecoli <- median(ecoli_len)
+mean_bifido <- mean(bifido_len)
+median_bifido <- median(bifido_len)
+###mean and median 
+```
+```{r}
+cds_stats <- data.frame(
+  Organism = c("Escherichia coli", "Bifidobacterium sp."),
+  Mean_CDS_Length_bp = c(round(mean_ecoli, 2), round(mean_bifido, 2)),
+  Median_CDS_Length_bp = c(round(median_ecoli, 2), round(median_bifido, 2))
+)
+###data.frame Creates a table-like structure in R.
+```
+```{r}
+boxplot(ecoli_lengths, bifido_lengths,
+        names = c("E. coli", "Bifidobacterium"),
+        ylab = "CDS Length (bp)",
+        main = "Comparison of CDS Length Distributions")
+###boxplot is a base R plotting function that shows
+```
+The boxplot and summary statistics indicate that the coding sequences of Escherichia coli tend to be somewhat longer than those of Bifidobacterium. E. coli has a mean CDS length of approximately 950-1000 bp, whereas Bifidobacterium CDSs have a mean length of approximately 850-900 bp. This pattern is consistent with their general genomic disparities as E. coli has a larger and more gene-rich genome (~4.6 Mb) which enables a high degree of metabolic and environmental flexibility (Blattner et al., 1997; Riley et al., 2006).
+
+###4 the frequency of DNA bases
+
+
+```{r}
+ecoli_cds <- read.fasta("ecoli_cds.fa")
+bifido_cds <- read.fasta("bifido_cds.fa")
+```
+```{r}
+ecoli_all <- unlist(ecoli_cds)
+bifido_all <- unlist(bifido_cds)
+```
+```{r}
+ecoli_base_freq <- table(ecoli_all) / length(ecoli_all)
+bifido_base_freq <- table(bifido_all) / length(bifido_all)
+```
+```{r}
+ecoli_base_df <- data.frame(Base = names(ecoli_base_freq), Frequency = as.numeric(ecoli_base_freq), Organism = "E. coli")
+bifido_base_df <- data.frame(Base = names(bifido_base_freq), Frequency = as.numeric(bifido_base_freq), Organism = "Bifidobacterium")
+base_df <- rbind(ecoli_base_df, bifido_base_df)
+###as.numeric gets the numeric frequency values
+###rbind makes the two data frames row-wise
+```
+```{r}
+barplot(as.numeric(ecoli_base_freq),xlab="nucleotides",ylab="frequency", main="E coli CDS composition")
+```
+```{r}
+barplot(as.numeric(bifido_base_freq),xlab="nucleotides",ylab="frequency", main="Bifido CDS composition")
+###barplot creates a simple bar chart in base R.
+```
+
+
+### for protein
+```{r}
+ecoli_prot <- lapply(ecoli_cds, translate)
+bifido_prot <- lapply(bifido_cds, translate)
+```
+```{r}
+ecoli_prot_all <- unlist(ecoli_prot)
+bifido_prot_all <- unlist(bifido_prot)
+```
+```{r}
+ecoli_aa_freq <- table(ecoli_prot_all) / length(ecoli_prot_all)
+bifido_aa_freq <- table(bifido_prot_all) / length(bifido_prot_all)
+```
+```{r}
+ecoli_aa_df <- data.frame(AminoAcid = names(ecoli_aa_freq), Frequency = as.numeric(ecoli_aa_freq), Organism = "E. coli")
+bifido_aa_df <- data.frame(AminoAcid = names(bifido_aa_freq), Frequency = as.numeric(bifido_aa_freq), Organism = "Bifidobacterium")
+
+aa_df <- rbind(ecoli_aa_df, bifido_aa_df)
+
+```
+```{r}
+barplot(as.numeric(bifido_aa_freq),xlab="nucleotides",ylab="frequency", main="Bifido CDS composition")
+```
+```{r}
+barplot(as.numeric(ecoli_aa_freq),xlab="nucleotides",ylab="frequency", main="E coli CDS composition")
+```
+
+The comparison shows a distinct variation of the GC content between the two organisms. The AT/GC ratio of Ecoli is relatively balanced(Blattner et al., 1997). Conversely, the Bifidobacterium species have a high GC bias, usually greater than 60, which has been observed in earlier genomic studies (Milani et al., 2014). E. coli is protein-wise a heterogenous amino acid distribution, with Bifidobacterium frequently exhibiting greater proportions of glycine and alanine.
+
+
+
+###5 codons 
+```{r}
+ecoli_codon <- lapply(ecoli_cds, uco, index = "eff")
+bifido_codon <- lapply(bifido_cds, uco, index = "eff")
+###lapply Applies a function to each element of a list.
+###uco Calculates codon usage for a DNA sequence
+```
+```{r}
+ecoli_codon_sum <- Reduce("+", ecoli_codon)
+bifido_codon_sum <- Reduce("+", bifido_codon)
+```
+```{r}
+codons <- names(ecoli_codon_sum)
+codon_usage <- data.frame(
+  Codon = codons,
+  Ecoli = as.numeric(ecoli_codon_sum),
+  Bifidobacterium = as.numeric(bifido_codon_sum)
+)
+```
+```{r}
+calc_rscu <- function(codon_usage_vector) {
+  aa_table <- split(codon_usage_vector, s2c(names(codon_usage_vector)))
+  rscu <- codon_usage_vector
+  for (aa in names(GCU)) {
+    codons_aa <- names(which(GCU == aa))
+    total_aa <- sum(codon_usage_vector[codons_aa])
+    rscu[codons_aa] <- codon_usage_vector[codons_aa] / (total_aa / length(codons_aa))
+  }
+  return(rscu)
+}
+###rscu defines a function to calculate RSCU from a codon frequency vector.
+```
+```{r}
+barplot(ecoli_codon_sum,xlab="codon",ylab="RSCU", main="Ecoli Relative Synonymous Codon Usage RSCU")
+```
+```{r}
+barplot(bifido_codon_sum,xlab="codon",ylab="RSCU", main="Bifido Relative Synonymous Codon Usage RSCU")
+```
+Analysis of codon usage bias showed that there were evident differences between Bifidobacterium and Escherichia coli. E. coli has a moderate codon usage bias, which correlates with its balanced genomic GC content(Sharp & Li, 1987).Bifidobacterium has strong GC bias, characterized by the trend to use GC-ending codons, which corresponds to the high level of the genomic GC content (Milani et al., 2014).
+
+
+###6 protein sequence k-mers
+```{r setup, message=FALSE, warning=FALSE}
+library(seqinr)
+library(dplyr)
+library(ggplot2)
+```
+```{r}
+# Translate CDS to amino acid sequences
+ecoli_prot <- lapply(ecoli_cds, translate)
+bifido_prot <- lapply(bifido_cds, translate)
+
+# Concatenate all proteins into single string
+ecoli_aa <- paste(unlist(ecoli_prot), collapse = "")
+bifido_aa <- paste(unlist(bifido_prot), collapse = "")
+```
+```{r}
+count_kmers <- function(sequence, k) {
+  kmers <- substring(sequence, 1:(nchar(sequence) - k + 1), k:nchar(sequence))
+  table(kmers)
+}
+```
+```{r}
+ks <- 3:5
+results <- list()
+
+for (k in ks) {
+  # Count k-mers
+  bif_k <- count_kmers(bifido_aa, k)
+  ecoli_k <- count_kmers(ecoli_aa, k)
+  
+  # Normalize to frequencies
+  bif_freq <- bif_k / sum(bif_k)
+  ecoli_freq <- ecoli_k / sum(ecoli_k)
+  
+  # Merge into a data frame
+  df <- data.frame(
+    Kmer = names(bif_freq),
+    Bifido = as.numeric(bif_freq[names(bif_freq)]),
+    Ecoli = as.numeric(ecoli_freq[names(bif_freq)]), # match k-mers
+    stringsAsFactors = FALSE
+  )
+  
+  # Calculate log2 ratio
+  df$log2_ratio <- log2((df$Bifido + 1e-6) / (df$Ecoli + 1e-6)) # add small pseudo-count to avoid division by zero
+  
+  # Store results
+  results[[paste0("k", k)]] <- df
+}
+```
+```{r}
+k3_df <- results$k3
+
+top_over <- k3_df %>%
+  arrange(desc(log2_ratio)) %>%
+  head(10)
+
+top_under <- k3_df %>%
+  arrange(log2_ratio) %>%
+  head(10)
+```
+
+```{r}
+top_kmers <- rbind(
+  data.frame(top_over, Type = "Overrepresented"),
+  data.frame(top_under, Type = "Underrepresented")
+)
+```
+
+
+
+
+```{r}
+# Simple barplot using base R
+barplot(height = top_kmers$log2_ratio,
+        names.arg = top_kmers$Kmer,
+        col = ifelse(top_kmers$Type == "Overrepresented", "skyblue", "salmon"),
+        las = 2, cex.names = 0.8,
+        ylab = "log2(Bifidobacterium / E. coli)",
+        main = "Top Over- and Under-represented 3-mers in Bifidobacterium vs E. coli")
+```
+
+K-mer analysis indicates that there are specific short amino acid motifs (3-5 bases) that are grossly over- or under-represented in Bifidobacterium relative to E. coli.
+
+The over-represented motifs like GPG or PAA can be linked to structural plasticity in proteins because the Bifidobacterium enzymes tend to be active in the anaerobic gut where folding and stability are affected by the pH and redox conditions (Turroni et al., 2010).
+
+
+
